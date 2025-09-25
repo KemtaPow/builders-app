@@ -1,0 +1,10 @@
+{
+"name": "builders-app",
+"private": true,
+"workspaces": ["apps/*"],
+"scripts": {
+"dev": "pnpm --filter @app/api dev & pnpm --filter @app/web dev",
+"dev:api": "pnpm --filter @app/api dev",
+"dev:web": "pnpm --filter @app/web dev"
+}
+}
