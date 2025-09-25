@@ -4,7 +4,7 @@
 "initial": "DRAFT",
 "states": ["DRAFT", "SCHEDULED", "IN_PROGRESS", "COMPLETE", "INVOICED", "CANCELLED"],
 "transitions": {
-"SCHEDULE": { "from": ["DRAFT"], "to": "SCHEDULED", "guards": ["hasSchedule"], "effects": ["emitScheduled"] },
+"SCHEDULE": { "from": ["DRAFT"], "to": "SCHEDULED", "effects": ["emitScheduled"] },
 "START": { "from": ["SCHEDULED"], "to": "IN_PROGRESS" },
 "COMPLETE": { "from": ["IN_PROGRESS"], "to": "COMPLETE", "effects": ["notifyComplete"] },
 "INVOICE": { "from": ["COMPLETE"], "to": "INVOICED", "effects": ["enqueueXeroInvoice"] },

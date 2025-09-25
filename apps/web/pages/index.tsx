@@ -17,7 +17,7 @@ useEffect(() => { mutate(); }, [mutate]);
 return (
 <main style={{ maxWidth: 800, margin: '32px auto', fontFamily: 'system-ui, sans-serif' }}>
 <h1>Jobs (framework slice)</h1>
-<form onSubmit={async (e) => { e.preventDefault(); await createJob(ORG, title); setTitle('New Job'); mutate(); }}>
+<form onSubmit={async (e) => { e.preventDefault(); try { await createJob(ORG, title); setTitle('New Job'); await mutate(); } catch (err: any) { alert(err?.message || 'Create failed'); } }}>
 <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" style={{ padding: 8, width: 300 }} />
 <button style={{ marginLeft: 8, padding: '8px 12px' }}>Create</button>
 </form>
@@ -31,11 +31,25 @@ return (
 <span>Status: <b>{j.status}</b></span>
 </div>
 <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-{['SCHEDULE','START','COMPLETE','INVOICE','CANCEL'].map(ev => (
-<button key={ev} onClick={async () => { await transitionJob(j.id, ORG, ev); mutate(); }}>
+{(() => {
+  const allowed: Record<string, string[]> = {
+    DRAFT: ['SCHEDULE','CANCEL'],
+    SCHEDULED: ['START','CANCEL'],
+    IN_PROGRESS: ['COMPLETE','CANCEL'],
+    COMPLETE: ['INVOICE'],
+    INVOICED: [],
+    CANCELLED: [],
+  };
+  const buttons = ['SCHEDULE','START','COMPLETE','INVOICE','CANCEL'];
+  return buttons.map(ev => {
+    const enabled = (allowed[j.status] || []).includes(ev);
+    return (
+      <button key={ev} disabled={!enabled} onClick={async () => { try { await transitionJob(j.id, ORG, ev); await mutate(); } catch (err: any) { alert(err?.message || 'Transition failed'); } }}>
 {ev}
 </button>
-))}
+    );
+  });
+})()}
 </div>
 </div>
 ))}

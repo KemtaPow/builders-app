@@ -1,10 +1,1 @@
-{
-"name": "builders-app",
-"private": true,
-"workspaces": ["apps/*"],
-"scripts": {
-"dev": "pnpm --filter @app/api dev & pnpm --filter @app/web dev",
-"dev:api": "pnpm --filter @app/api dev",
-"dev:web": "pnpm --filter @app/web dev"
-}
-}
+{"name":"builders-app","private":true,"workspaces":["apps/*"],"scripts":{"dev":"node scripts/dev.mjs","dev:api":"pnpm --filter @app/api dev","dev:web":"pnpm --filter @app/web dev"},"dependencies":{"docker":"^0.2.14"}}
