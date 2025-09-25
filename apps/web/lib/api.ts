@@ -34,3 +34,43 @@ export async function transitionJob(id: string, orgId: string, event: string) {
     body: JSON.stringify({ orgId, event, idempotencyKey: `${id}:${event}` })
   });
 }
+
+// Calendar helpers
+export async function listCalendarEvents(orgId: string, from?: string, to?: string) {
+  const p = new URLSearchParams({ orgId, ...(from && to ? { from, to } : {}) });
+  return jsonFetch(`${API}/calendar/events?${p.toString()}`);
+}
+
+export async function createCalendarEvent(payload: {
+  orgId: string; title: string; jobId?: string; start: string; end: string; color?: string; allDay?: boolean
+}) {
+  return jsonFetch(`${API}/calendar/events`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function moveCalendarEvent(id: string, orgId: string, start: string, end: string) {
+  return jsonFetch(`${API}/calendar/events/${id}/times`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orgId, start, end })
+  });
+}
+
+export async function statusCalendarEvent(id: string, orgId: string, status: 'SCHEDULED'|'IN_PROGRESS'|'COMPLETE'|'INVOICED'|'CANCELLED') {
+  return jsonFetch(`${API}/calendar/events/${id}/status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orgId, status })
+  });
+}
+
+export async function flagCalendarEvent(id: string, flag?: string) {
+  return jsonFetch(`${API}/calendar/events/${id}/flag`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ flag })
+  });
+}

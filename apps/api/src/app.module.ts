@@ -5,10 +5,11 @@ import { AuditInterceptor } from './common/audit/audit.interceptor.js';
 import { EventBus } from './common/events/event-bus.js';
 import { OutboxService } from './common/outbox/outbox.service.js';
 import { JobsModule } from './jobs/jobs.module.js';
+import { CalendarModule } from './calendar/calendar.module.js';
 
 
 @Module({
 providers: [PrismaService, AuditService, AuditInterceptor, EventBus, OutboxService],
-imports: [JobsModule],
+imports: [JobsModule, CalendarModule],
 })
 export class AppModule {}

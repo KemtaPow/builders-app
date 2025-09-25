@@ -1,114 +1,168 @@
 generator client {
-model User {
-id String @id @default(cuid())
-email String @unique
-name String?
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
-memberships Membership[]
+  provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum JobStatus {
+  DRAFT
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETE
+  INVOICED
+  CANCELLED
+}
+
+enum OutboxStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Org {
+  id           String       @id @default(cuid())
+  name         String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  memberships  Membership[]
+  jobs         Job[]
+  calendarEvents CalendarEvent[]
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  memberships  Membership[]
+}
 
 model Membership {
-id String @id @default(cuid())
-org Org @relation(fields: [orgId], references: [id])
-orgId String
-user User @relation(fields: [userId], references: [id])
-userId String
-role Role
-createdAt DateTime @default(now())
-@@unique([orgId, userId])
-}
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id])
+  orgId     String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  role      Role
+  createdAt DateTime @default(now())
 
+  @@unique([orgId, userId])
+}
 
 model Job {
-id String @id @default(cuid())
-org Org @relation(fields: [orgId], references: [id])
-orgId String
-title String
-status JobStatus @default(DRAFT)
-workflowVersion String @default("1.0")
-budgetCents Int @default(0)
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
-scheduledAt     DateTime?
+  id              String     @id @default(cuid())
+  org             Org        @relation(fields: [orgId], references: [id])
+  orgId           String
+  title           String
+  status          JobStatus  @default(DRAFT)
+  workflowVersion String     @default("1.0")
+  budgetCents     Int        @default(0)
+  scheduledAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  events        CalendarEvent[]
 }
 
+model CalendarEvent {
+  id            String     @id @default(cuid())
+  org           Org        @relation(fields: [orgId], references: [id])
+  orgId         String
+  job           Job?       @relation(fields: [jobId], references: [id])
+  jobId         String?
+  title         String
+  start         DateTime
+  end           DateTime
+  allDay        Boolean    @default(false)
+  status        JobStatus?
+  flag          String?
+  color         String?
+  resourceLabel String?
+  notes         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([orgId, start])
+  @@index([jobId])
+}
 
 model Document {
-id String @id @default(cuid())
-orgId String
-jobId String?
-url String
-kind String
-createdAt DateTime @default(now())
+  id        String   @id @default(cuid())
+  orgId     String
+  jobId     String?
+  url       String
+  kind      String
+  createdAt DateTime @default(now())
 }
-
 
 model FormSubmission {
-id String @id @default(cuid())
-orgId String
-jobId String?
-formKey String
-data Json
-pdfUrl String?
-createdAt DateTime @default(now())
+  id        String   @id @default(cuid())
+  orgId     String
+  jobId     String?
+  formKey   String
+  data      Json
+  pdfUrl    String?
+  createdAt DateTime @default(now())
 }
-
 
 model DomainEvent {
-id String @id @default(cuid())
-orgId String
-name String
-entityType String
-entityId String
-payload Json
-occurredAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  orgId      String
+  name       String
+  entityType String
+  entityId   String
+  payload    Json
+  occurredAt DateTime @default(now())
 }
-
 
 model AuditLog {
-id String @id @default(cuid())
-orgId String
-userId String?
-action String
-entityType String
-entityId String
-diff Json?
-occurredAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  orgId      String
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  diff       Json?
+  occurredAt DateTime @default(now())
 }
-
 
 model Notification {
-id String @id @default(cuid())
-orgId String
-channel String
-to String
-templateKey String
-payload Json
-sentAt DateTime?
+  id          String   @id @default(cuid())
+  orgId       String
+  channel     String
+  to          String
+  templateKey String
+  payload     Json
+  sentAt      DateTime?
 }
-
 
 model IntegrationOutbox {
-id String @id @default(cuid())
-orgId String
-topic String
-payload Json
-status OutboxStatus @default(PENDING)
-attempts Int @default(0)
-lastError String?
-createdAt DateTime @default(now())
-updatedAt DateTime @updatedAt
-@@index([status, createdAt])
+  id        String       @id @default(cuid())
+  orgId     String
+  topic     String
+  payload   Json
+  status    OutboxStatus @default(PENDING)
+  attempts  Int          @default(0)
+  lastError String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([status, createdAt])
 }
 
-
 model IdempotencyKey {
-key String @id
-orgId String
-userId String?
-requestHash String
-response Json?
-createdAt DateTime @default(now())
+  key         String   @id
+  orgId       String
+  userId      String?
+  requestHash String
+  response    Json?
+  createdAt   DateTime @default(now())
 }
